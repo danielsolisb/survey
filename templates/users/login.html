@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Survey DynaDrill</title>
+    <style>
+      :root {
+        --primary: #4f46e5;
+        --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: var(--bg-gradient);
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      .glass-container {
+        background: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        padding: 3rem;
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+      }
+      h2 {
+        color: white;
+        margin-bottom: 2rem;
+        font-weight: 300;
+      }
+      .form-group {
+        margin-bottom: 1.5rem;
+        text-align: left;
+      }
+      label {
+        display: block;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+      }
+      input {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.9);
+        box-sizing: border-box;
+        font-size: 1rem;
+      }
+      input:focus {
+        outline: 2px solid var(--primary);
+      }
+      button {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 5px;
+        background: var(--primary);
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.3s ease;
+        font-weight: 600;
+      }
+      button:hover {
+        background: #4338ca;
+      }
+      .error {
+        color: #ffcccc;
+        background: rgba(255, 0, 0, 0.2);
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="glass-container">
+      <h2>Iniciar Sesión</h2>
+      {% if form.errors %}
+      <div class="error">Usuario o contraseña incorrectos.</div>
+      {% endif %}
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="id_username">Correo Electrónico</label>
+          <input
+            type="email"
+            name="username"
+            id="id_username"
+            placeholder="ejemplo@correo.com"
+            required
+            autofocus
+          />
+        </div>
+        <div class="form-group">
+          <label for="id_password">Contraseña</label>
+          <input
+            type="password"
+            name="password"
+            id="id_password"
+            placeholder="••••••••"
+            required
+          />
+        </div>
+        <button type="submit">Entrar</button>
+      </form>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,194 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}{{ well.name }} | Detalles{% endblock %}
+{% block page_title %}Detalle de Pozo: {{ well.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    
+    <!-- Left Column: Well Info & Actions -->
+    <div class="space-y-6">
+        <!-- Well Info Card -->
+        <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-lg">
+            <h3 class="text-lg font-semibold text-white mb-4 border-b border-slate-700 pb-2">Información General</h3>
+            <div class="space-y-3">
+                <div>
+                    <p class="text-xs text-slate-400 uppercase tracking-wide">Ubicación / Campo</p>
+                    <p class="text-white font-medium">{{ well.location|default:"No definido" }}</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase tracking-wide">Latitud</p>
+                        <p class="text-slate-300 font-mono text-sm">{{ well.latitude|default:"--" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase tracking-wide">Longitud</p>
+                        <p class="text-slate-300 font-mono text-sm">{{ well.longitude|default:"--" }}</p>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 uppercase tracking-wide">Elevación (RKB/GL)</p>
+                    <p class="text-slate-300">{{ well.elevation }} m</p>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 uppercase tracking-wide">Estado</p>
+                    {% if well.is_active %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-green-500/10 text-green-400">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-2"></span> Activo
+                        </span>
+                    {% else %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-red-500/10 text-red-400">
+                            Inactivo
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Import Action Card -->
+        <div class="bg-indigo-900/20 rounded-xl p-6 border border-indigo-500/30 shadow-lg">
+            <h3 class="text-lg font-semibold text-white mb-2">Importar Datos</h3>
+            <p class="text-sm text-slate-400 mb-6">Carga nuevos surveys o actualizaciones usando la plantilla oficial.</p>
+
+            <form action="{% url 'surveys:survey_import' well.id %}" method="post" enctype="multipart/form-data" class="space-y-4">
+                {% csrf_token %}
+                
+                <!-- Custom File Input -->
+                <div class="relative">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Archivo Excel (.xlsx)</label>
+                    <input type="file" name="excel_file" accept=".xlsx" required
+                           class="block w-full text-sm text-slate-400
+                                  file:mr-4 file:py-2 file:px-4
+                                  file:rounded-full file:border-0
+                                  file:text-sm file:font-semibold
+                                  file:bg-indigo-600 file:text-white
+                                  file:cursor-pointer hover:file:bg-indigo-500
+                                  cursor-pointer bg-slate-800 rounded-lg border border-slate-600 focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div class="flex flex-col gap-3 mt-4">
+                    <button type="submit" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors flex items-center justify-center shadow-lg shadow-indigo-600/20">
+                        <i class="fa-solid fa-cloud-arrow-up mr-2"></i> Procesar y Cargar
+                    </button>
+                    
+                    <a href="{% url 'surveys:download_template' %}" class="w-full py-2.5 px-4 bg-slate-700 hover:bg-slate-600 text-slate-300 font-medium rounded-lg transition-colors flex items-center justify-center border border-slate-600 text-sm">
+                        <i class="fa-solid fa-file-excel mr-2 text-green-500"></i> Descargar Plantilla
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right Column: Trajectory & History -->
+    <div class="lg:col-span-2 space-y-6">
+        
+        <!-- Active Trajectory Summary -->
+        <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-lg">
+            <div class="p-6 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-white">Trayectoria Activa</h3>
+                {% if active_trajectory %}
+                    <div class="flex items-center gap-3">
+                        <span class="px-3 py-1 bg-indigo-500/10 text-indigo-400 rounded-full text-xs border border-indigo-500/20">
+                            {{ active_trajectory.name }}
+                        </span>
+                        <form action="{% url 'surveys:trajectory_delete' active_trajectory.pk %}" method="post" onsubmit="return confirm('¿Estás seguro de eliminar esta trayectoria y todos sus datos?');">
+                            {% csrf_token %}
+                            <button type="submit" class="text-slate-400 hover:text-red-400 transition-colors" title="Eliminar Trayectoria">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </form>
+                    </div>
+                {% else %}
+                    <span class="text-slate-500 text-sm italic">Sin datos cargados</span>
+                {% endif %}
+            </div>
+            
+            <div class="p-6">
+                {% if active_trajectory %}
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-700/50 text-center">
+                            <p class="text-xs text-slate-500 mb-1">Profundidad (MD)</p>
+                            <p class="text-xl font-bold text-white">{{ active_trajectory.stations.last.md|floatformat:1 }} <span class="text-xs font-normal text-slate-600">m</span></p>
+                        </div>
+                        <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-700/50 text-center">
+                            <p class="text-xs text-slate-500 mb-1">Inclinación Max</p>
+                            <p class="text-xl font-bold text-white">--°</p>
+                        </div>
+                        <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-700/50 text-center">
+                            <p class="text-xs text-slate-500 mb-1">TVD Final</p>
+                            <p class="text-xl font-bold text-white">{{ active_trajectory.stations.last.tvd|floatformat:1 }} <span class="text-xs font-normal text-slate-600">m</span></p>
+                        </div>
+                        <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-700/50 text-center">
+                            <p class="text-xs text-slate-500 mb-1">Desplazamiento</p>
+                            <p class="text-xl font-bold text-white">-- <span class="text-xs font-normal text-slate-600">m</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="h-[600px] bg-slate-900 rounded-lg border border-slate-700/50 relative overflow-hidden group">
+                         {% if plot_div %}
+                            {{ plot_div|safe }}
+                         {% else %}
+                             <!-- Placeholder for Empty State -->
+                             <div class="absolute inset-0 flex items-center justify-center opacity-50">
+                                 <p class="text-slate-500">Cargando visualización...</p>
+                             </div>
+                         {% endif %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-12 text-slate-500">
+                        <i class="fa-regular fa-folder-open text-4xl mb-3 opacity-50"></i>
+                        <p>No hay trayectoria activa para mostrar.</p>
+                        <p class="text-xs mt-2">Importa un archivo Excel para comenzar.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Import History -->
+        <div class="bg-slate-800 rounded-xl border border-slate-700 shadow-lg">
+            <div class="p-6 border-b border-slate-700">
+                <h3 class="text-lg font-semibold text-white">Historial de Importaciones</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-400">
+                    <thead class="bg-slate-700/50 text-xs uppercase text-slate-300">
+                        <tr>
+                            <th class="px-6 py-3">Fecha</th>
+                            <th class="px-6 py-3">Usuario</th>
+                            <th class="px-6 py-3">Estado</th>
+                            <th class="px-6 py-3">Log</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700">
+                        {% for imp in recent_imports %}
+                        <tr class="hover:bg-slate-700/30 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap">{{ imp.created_at|date:"d/m/Y H:i" }}</td>
+                            <td class="px-6 py-4">{{ imp.uploaded_by.email|default:"Sistema" }}</td>
+                            <td class="px-6 py-4">
+                                {% if imp.status == 'PROCESSED' %}
+                                    <span class="px-2 py-1 rounded-full text-xs bg-green-500/10 text-green-400 font-semibold">Exitoso</span>
+                                {% elif imp.status == 'ERROR' %}
+                                    <span class="px-2 py-1 rounded-full text-xs bg-red-500/10 text-red-400 font-semibold">Error</span>
+                                {% else %}
+                                    <span class="px-2 py-1 rounded-full text-xs bg-amber-500/10 text-amber-400 font-semibold">Pendiente</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 max-w-xs truncate" title="{{ imp.processing_log }}">
+                                {{ imp.processing_log }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-8 text-center text-slate-500">
+                                No hay historial de cargas.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

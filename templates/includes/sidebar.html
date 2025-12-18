@@ -1,0 +1,60 @@
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-800 border-r border-slate-700 flex flex-col transition-all duration-300" id="sidebar">
+        <!-- Logo Area -->
+        <div class="h-16 flex items-center justify-center border-b border-slate-700 bg-slate-900 transition-all duration-300" id="logo-container">
+            <div class="flex items-center gap-3 overflow-hidden whitespace-nowrap">
+                <div class="w-8 h-8 rounded bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/30 flex-shrink-0">
+                    D
+                </div>
+                <span class="text-lg font-bold tracking-wide text-white transition-opacity duration-300 sidebar-text">DynaDrill</span>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
+            <p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Principal</p>
+            
+            <a href="{% url 'main:dashboard' %}" class="flex items-center px-3 py-2.5 bg-indigo-600/10 text-indigo-400 rounded-lg group transition-colors relative" title="Dashboard">
+                <i class="fa-solid fa-chart-line w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0"></i>
+                <span class="font-medium sidebar-text whitespace-nowrap transition-opacity duration-300">Dashboard</span>
+            </a>
+
+            <a href="{% url 'surveys:well_list' %}" class="flex items-center px-3 py-2.5 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg group transition-colors relative" title="Pozos">
+                <i class="fa-solid fa-oil-well w-6 h-6 flex items-center justify-center mr-3 group-hover:text-indigo-400 transition-colors flex-shrink-0"></i>
+                <span class="font-medium sidebar-text whitespace-nowrap transition-opacity duration-300">Pozos</span>
+            </a>
+
+            <a href="#" class="flex items-center px-3 py-2.5 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg group transition-colors relative" title="Surveys">
+                <i class="fa-solid fa-layer-group w-6 h-6 flex items-center justify-center mr-3 group-hover:text-indigo-400 transition-colors flex-shrink-0"></i>
+                <span class="font-medium sidebar-text whitespace-nowrap transition-opacity duration-300">Surveys</span>
+            </a>
+
+            <p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mt-8 mb-2">Administración</p>
+
+            <a href="#" class="flex items-center px-3 py-2.5 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg group transition-colors relative" title="Usuarios">
+                <i class="fa-solid fa-users w-6 h-6 flex items-center justify-center mr-3 group-hover:text-indigo-400 transition-colors flex-shrink-0"></i>
+                <span class="font-medium sidebar-text whitespace-nowrap transition-opacity duration-300">Usuarios</span>
+            </a>
+            
+            <a href="#" class="flex items-center px-3 py-2.5 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg group transition-colors relative" title="Configuración">
+                <i class="fa-solid fa-gear w-6 h-6 flex items-center justify-center mr-3 group-hover:text-indigo-400 transition-colors flex-shrink-0"></i>
+                <span class="font-medium sidebar-text whitespace-nowrap transition-opacity duration-300">Configuración</span>
+            </a>
+        </nav>
+
+        <!-- User Profile -->
+        <div class="p-4 border-t border-slate-700 bg-slate-800 transition-all duration-300" id="profile-container">
+            <div class="flex items-center gap-3 overflow-hidden">
+                <div class="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center text-slate-300 font-bold flex-shrink-0">
+                    {{ user.email|slice:":1"|upper }}
+                </div>
+                <div class="flex-1 min-w-0 sidebar-text transition-opacity duration-300">
+                    <p class="text-sm font-medium text-white truncate">{{ user.email }}</p>
+                    <p class="text-xs text-indigo-400 truncate">{{ user.get_role_display }}</p>
+                </div>
+                <a href="{% url 'users:logout' %}" class="text-slate-400 hover:text-red-400 transition-colors sidebar-text" title="Cerrar Sesión">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </a>
+            </div>
+        </div>
+    </aside>

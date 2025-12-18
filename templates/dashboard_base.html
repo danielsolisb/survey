@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="flex h-screen bg-slate-900 overflow-hidden">
+    
+    {% include 'includes/sidebar.html' %}
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col min-w-0 bg-slate-900">
+        
+        {% include 'includes/topbar.html' %}
+
+        <!-- Dashboard Content -->
+        <div class="flex-1 overflow-auto p-6">
+            {% block dashboard_content %}{% endblock %}
+        </div>
+    </main>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('sidebar-toggle');
+        const sidebarTexts = document.querySelectorAll('.sidebar-text');
+        const logoContainer = document.getElementById('logo-container');
+        const profileContainer = document.getElementById('profile-container');
+        const sectionTitles = document.querySelectorAll('nav p'); 
+
+        let isCollapsed = false;
+
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                isCollapsed = !isCollapsed;
+
+                if (isCollapsed) {
+                    // Collapse
+                    sidebar.classList.remove('w-64');
+                    sidebar.classList.add('w-20');
+                    
+                    // Hide text
+                    sidebarTexts.forEach(text => {
+                        text.classList.add('opacity-0', 'w-0', 'hidden');
+                    });
+                    
+                    // Hide section titles
+                    sectionTitles.forEach(title => {
+                        title.classList.add('hidden');
+                    });
+
+                    // Center Logos
+                    logoContainer.classList.remove('px-6');
+                    logoContainer.classList.add('justify-center');
+                    
+                    // Adjust profile padding for centering
+                    profileContainer.classList.remove('p-4');
+                    profileContainer.classList.add('p-3', 'flex', 'justify-center');
+
+                } else {
+                    // Expand
+                    sidebar.classList.remove('w-20');
+                    sidebar.classList.add('w-64');
+                    
+                    // Show text
+                    sidebarTexts.forEach(text => {
+                        text.classList.remove('hidden');
+                        setTimeout(() => {
+                            text.classList.remove('opacity-0', 'w-0');
+                        }, 50);
+                    });
+
+                    // Show section titles
+                    sectionTitles.forEach(title => {
+                        title.classList.remove('hidden');
+                    });
+
+                    // Reset Logos
+                    logoContainer.classList.add('px-6');
+                    logoContainer.classList.remove('justify-center');
+
+                    // Reset profile padding
+                    profileContainer.classList.add('p-4');
+                    profileContainer.classList.remove('p-3', 'flex', 'justify-center');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
