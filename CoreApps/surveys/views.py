@@ -5,9 +5,21 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy, reverse
 from django.http import HttpResponse, FileResponse
 from django.conf import settings
-from .models import Well, SurveyImport
+from django.contrib import messages
+from .models import Well, SurveyImport, Trajectory
 from .utils import process_survey_file
 from .visualizer import generate_3d_plot
+from .forms import WellForm
+
+class WellCreateView(LoginRequiredMixin, CreateView):
+    model = Well
+    form_class = WellForm
+    template_name = 'surveys/well_form.html'
+    success_url = reverse_lazy('surveys:well_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, "Pozo creado exitosamente.")
+        return super().form_valid(form)
 
 class WellListView(LoginRequiredMixin, ListView):
     model = Well

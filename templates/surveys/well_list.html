@@ -7,9 +7,9 @@
     <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-xl font-semibold text-white">Listado de Pozos Activos</h3>
-            <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors flex items-center">
+            <a href="{% url 'surveys:well_create' %}" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors flex items-center shadow-lg shadow-indigo-500/20">
                 <i class="fa-solid fa-plus mr-2"></i> Nuevo Pozo
-            </button>
+            </a>
         </div>
 
         {% if wells %}
@@ -20,7 +20,8 @@
                             <th scope="col" class="px-6 py-3 rounded-l-lg">Nombre</th>
                             <th scope="col" class="px-6 py-3">Ubicación</th>
                             <th scope="col" class="px-6 py-3">Estado</th>
-                            <th scope="col" class="px-6 py-3 rounded-r-lg">Fecha Creación</th>
+                            <th scope="col" class="px-6 py-3">Fecha Creación</th>
+                            <th scope="col" class="px-6 py-3 rounded-r-lg">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -40,7 +41,17 @@
                                         <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-500/10 text-red-400">Inactivo</span>
                                     {% endif %}
                                 </td>
-                                <td class="px-6 py-4">{{ well.created_at|date:"d/m/Y H:i" }}</td>
+                                <td class="px-6 py-4 text-slate-400">
+                                    {{ well.created_at|date:"d/m/Y H:i" }}
+                                </td>
+                                <td class="px-6 py-4 text-slate-400">
+                                    <form action="{% url 'surveys:well_delete' well.pk %}" method="post" class="inline" onsubmit="return confirm('¿Estás seguro de querer eliminar el pozo {{ well.name }}? Esta acción es irreversible y borrará todos sus surveys.');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="text-slate-500 hover:text-red-400 transition-colors" title="Eliminar Pozo">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -53,9 +64,9 @@
                 </div>
                 <h3 class="text-lg font-medium text-white mb-2">No hay pozos registrados</h3>
                 <p class="text-slate-400 mb-6">Comienza registrando el primer pozo del proyecto.</p>
-                <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors">
+                <a href="{% url 'surveys:well_create' %}" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors shadow-lg shadow-indigo-500/20 inline-block">
                     Crear Primer Pozo
-                </button>
+                </a>
             </div>
         {% endif %}
     </div>

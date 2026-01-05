@@ -2,7 +2,17 @@ from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
-from .models import Trajectory
+from .models import Trajectory, Well
+from django.urls import reverse_lazy
+
+class WellDeleteView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        well = get_object_or_404(Well, pk=pk)
+        well_name = well.name
+        well.delete()
+        messages.success(request, f"Pozo '{well_name}' eliminado correctamente.")
+        return redirect('surveys:well_list')
+
 
 class TrajectoryDeleteView(LoginRequiredMixin, View):
     def post(self, request, pk):
