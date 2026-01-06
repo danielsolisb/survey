@@ -7,6 +7,7 @@ from django.urls import reverse_lazy, reverse
 from django.http import HttpResponse, FileResponse
 from django.conf import settings
 from django.contrib import messages
+from django.core.serializers.json import DjangoJSONEncoder
 from .models import Well, SurveyImport, Trajectory
 from .utils import process_survey_file
 from .visualizer import generate_3d_plot
@@ -145,3 +146,38 @@ class DownloadTemplateView(LoginRequiredMixin, View):
             return FileResponse(open(file_path, 'rb'), as_attachment=True, filename='DynaDrill_Template.xlsx')
         else:
             return HttpResponse("Plantilla no encontrada. Contacte al administrador.", status=404)
+
+class Well3DEditorView(LoginRequiredMixin, DetailView):
+    model = Well
+    template_name = 'surveys/well_3d_editor.html'
+    context_object_name = 'well'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Get active trajectory
+        trajectory = self.object.trajectories.filter(is_active=True).first()
+        
+        survey_json = "[]"
+        mechanical_json = "[]"
+
+        if trajectory:
+            # Survey Points
+            points = list(trajectory.stations.all().order_by('md').values('md', 'tvd', 'north', 'east'))
+            survey_json = json.dumps(points, cls=DjangoJSONEncoder)
+
+            # Mechanical Items
+            geometry_items = trajectory.geometry.all().order_by('start_md')
+            mech_data = []
+            for item in geometry_items:
+                mech_data.append({
+                    'type': item.item_type,
+                    'start_md': float(item.start_md),
+                    'end_md': float(item.end_md),
+                    'diameter': float(item.diameter),
+                    'color': item.color
+                })
+            mechanical_json = json.dumps(mech_data)
+
+        context['survey_json'] = survey_json
+        context['mechanical_json'] = mechanical_json
+        return context

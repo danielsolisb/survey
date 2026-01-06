@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
     WellListView, WellDetailView, SurveyImportView, DownloadTemplateView, 
-    WellCreateView, Well3DView
+    WellCreateView, Well3DView, Well3DEditorView
 )
 from .delete_view import TrajectoryDeleteView, WellDeleteView
 
@@ -12,6 +12,7 @@ urlpatterns = [
     path('wells/create/', WellCreateView.as_view(), name='well_create'),
     path('wells/<uuid:pk>/delete/', WellDeleteView.as_view(), name='well_delete'), # Nueva Ruta
     path('wells/<uuid:pk>/3d/', Well3DView.as_view(), name='well_3d'),
+    path('wells/<uuid:pk>/3d/editor/', Well3DEditorView.as_view(), name='well_3d_editor'),
     path('wells/<uuid:pk>/', WellDetailView.as_view(), name='well_detail'),
     path('wells/<uuid:pk>/import/', SurveyImportView.as_view(), name='survey_import'),
     path('template/download/', DownloadTemplateView.as_view(), name='download_template'),

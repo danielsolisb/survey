@@ -1,0 +1,108 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Simulador 3D | {{ well.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="h-screen flex bg-slate-50 overflow-hidden" style="height: calc(100vh - 80px);">
+    
+    <!-- Left: 3D Visualization Area (Flex Grow) -->
+    <div class="flex-1 relative h-full">
+        <!-- Overlay Info (Top Left) -->
+        <div class="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur text-slate-800 p-4 rounded-lg border border-slate-200 shadow-xl max-w-xs pointer-events-auto">
+            <div class="flex items-center justify-between mb-2">
+                <h2 class="text-lg font-bold">{{ well.name }} <span class="text-xs font-normal text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded ml-2">Simulador</span></h2>
+                <a href="{% url 'surveys:well_list' %}" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="fa-solid fa-times"></i>
+                </a>
+            </div>
+            
+            <!-- Quick Cams -->
+            <div class="space-y-2 mt-2">
+                <button id="view-top" class="w-full py-1 px-3 bg-slate-100 hover:bg-slate-200 rounded text-xs transition-colors font-medium border border-slate-300">Vista Superior</button>
+                <button id="view-side" class="w-full py-1 px-3 bg-slate-100 hover:bg-slate-200 rounded text-xs transition-colors font-medium border border-slate-300">Vista Lateral</button>
+                <button id="view-reset" class="w-full py-1 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-xs transition-colors font-medium shadow-sm">Resetear Cámara</button>
+            </div>
+
+            <!-- Slider -->
+            <div class="mt-4 pt-4 border-t border-slate-100">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Profundidad (MD): <span id="depth-val">0</span>m</label>
+                <input type="range" id="depth-slider" min="0" max="100" value="0" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" oninput="window.updateCameraDepth && window.updateCameraDepth(this.value)">
+            </div>
+        </div>
+
+        <!-- Canvas -->
+        <div id="canvas-container" class="w-full h-full"></div>
+
+        <!-- On-Screen Camera Controls (Manual) -->
+        <div class="absolute bottom-6 right-6 flex flex-col items-center gap-2 pointer-events-auto z-10">
+            <!-- D-Pad -->
+            <div class="grid grid-cols-3 gap-1 bg-white/90 p-2 rounded-xl shadow-lg border border-slate-200 backdrop-blur">
+                <div></div>
+                <button id="cam-up" class="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-indigo-100 text-slate-600 rounded active:bg-indigo-200 transition-colors select-none"><i class="fa-solid fa-arrow-up"></i></button>
+                <div></div>
+                
+                <button id="cam-left" class="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-indigo-100 text-slate-600 rounded active:bg-indigo-200 transition-colors select-none"><i class="fa-solid fa-arrow-left"></i></button>
+                <button id="cam-down" class="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-indigo-100 text-slate-600 rounds active:bg-indigo-200 transition-colors select-none"><i class="fa-solid fa-arrow-down"></i></button>
+                <button id="cam-right" class="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-indigo-100 text-slate-600 rounded active:bg-indigo-200 transition-colors select-none"><i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+            
+            <!-- Zoom -->
+            <div class="flex gap-1 bg-white/90 p-1 rounded-lg shadow-lg border border-slate-200 backdrop-blur">
+                <button id="cam-zoom-in" class="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-emerald-100 text-slate-600 rounded active:bg-emerald-200 transition-colors select-none"><i class="fa-solid fa-plus"></i></button>
+                <button id="cam-zoom-out" class="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-emerald-100 text-slate-600 rounded active:bg-emerald-200 transition-colors select-none"><i class="fa-solid fa-minus"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Editor Panel (Fixed Width) -->
+    <div class="w-96 bg-white border-l border-slate-200 h-full flex flex-col shadow-xl z-20">
+        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+            <h3 class="font-bold text-slate-700">Diseño Mecánico</h3>
+            <button onclick="window.addNewRow()" class="text-xs bg-emerald-500 hover:bg-emerald-600 text-white px-2 py-1 rounded transition-colors shadow-sm">
+                <i class="fa-solid fa-plus mr-1"></i> Agregar Tramo
+            </button>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-4 space-y-3 bg-white" id="editor-rows">
+            <!-- Rows injected by JS -->
+            <div class="flex justify-center items-center h-full text-slate-400">
+                <i class="fa-solid fa-spinner fa-spin mr-2"></i> Cargando editor...
+            </div>
+        </div>
+
+        <div class="p-4 border-t border-slate-100 bg-slate-50 text-xs text-slate-500">
+            <p><i class="fa-solid fa-info-circle mr-1"></i> Modo Simulación: Los cambios no se guardan en la base de datos.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Import Map -->
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+</script>
+
+<!-- Init Script -->
+<script type="module">
+    import { initEditor, setCameraDepth } from "{% static 'js/well_editor.js' %}";
+
+    // Bind slider helper to global because oninput strings can't see module scope
+    window.updateCameraDepth = setCameraDepth;
+
+    // Load Data
+    const surveyData = JSON.parse('{{ survey_json|escapejs }}');
+    const mechData = JSON.parse('{{ mechanical_json|escapejs }}');
+
+    // Start
+    initEditor(surveyData, mechData);
+
+    // Setup basic UI bindings for View Buttons (Need to bridge to Module logic or move logic to module completely)
+    // For MVP, lets wire them up simply if module exports camera control or access
+    // Better: Move button logic INTO module init. The module selects by ID.
+</script>
+{% endblock %}

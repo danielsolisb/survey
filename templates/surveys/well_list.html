@@ -48,6 +48,9 @@
                                     <a href="{% url 'surveys:well_3d' well.pk %}" class="text-slate-500 hover:text-indigo-400 transition-colors mr-3" title="Visualización 3D">
                                         <i class="fa-solid fa-cube"></i>
                                     </a>
+                                    <a href="{% url 'surveys:well_3d_editor' well.pk %}" class="text-slate-500 hover:text-emerald-400 transition-colors mr-3" title="Simulador / Editor">
+                                        <i class="fa-solid fa-sliders"></i>
+                                    </a>
                                     <form action="{% url 'surveys:well_delete' well.pk %}" method="post" class="inline" onsubmit="return confirm('¿Estás seguro de querer eliminar el pozo {{ well.name }}? Esta acción es irreversible y borrará todos sus surveys.');">
                                         {% csrf_token %}
                                         <button type="submit" class="text-slate-500 hover:text-red-400 transition-colors" title="Eliminar Pozo">
