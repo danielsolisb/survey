@@ -45,6 +45,9 @@
                                     {{ well.created_at|date:"d/m/Y H:i" }}
                                 </td>
                                 <td class="px-6 py-4 text-slate-400">
+                                    <a href="{% url 'surveys:well_3d' well.pk %}" class="text-slate-500 hover:text-indigo-400 transition-colors mr-3" title="Visualización 3D">
+                                        <i class="fa-solid fa-cube"></i>
+                                    </a>
                                     <form action="{% url 'surveys:well_delete' well.pk %}" method="post" class="inline" onsubmit="return confirm('¿Estás seguro de querer eliminar el pozo {{ well.name }}? Esta acción es irreversible y borrará todos sus surveys.');">
                                         {% csrf_token %}
                                         <button type="submit" class="text-slate-500 hover:text-red-400 transition-colors" title="Eliminar Pozo">

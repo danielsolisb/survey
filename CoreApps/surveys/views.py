@@ -1,4 +1,5 @@
 import os
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, DetailView, CreateView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -63,6 +64,51 @@ class WellDetailView(LoginRequiredMixin, DetailView):
             # Generar Gráfico 3D
             context['plot_div'] = generate_3d_plot(active_traj)
             
+        return context
+
+class Well3DView(LoginRequiredMixin, DetailView):
+    model = Well
+    template_name = 'surveys/well_3d.html'
+    context_object_name = 'well'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        active_traj = self.object.trajectories.filter(is_active=True).first()
+        context['active_trajectory'] = active_traj
+        
+        # Defaults
+        context['survey_json'] = '[]'
+        context['mechanical_json'] = '[]'
+        
+        if active_traj:
+            # 1. Serializar Trayectoria (Stations)
+            # Three.js necesita arrays simples.
+            stations = active_traj.stations.all().order_by('md')
+            survey_data = []
+            for s in stations:
+                survey_data.append({
+                    'md': float(s.md),
+                    'tvd': float(s.tvd) if s.tvd is not None else 0,
+                    'north': float(s.north) if s.north is not None else 0,
+                    'east': float(s.east) if s.east is not None else 0,
+                    'inc': float(s.inclination),
+                    'azi': float(s.azimuth)
+                })
+            context['survey_json'] = json.dumps(survey_data)
+
+            # 2. Serializar Mecánicos (Casing/Liner)
+            geometry_items = active_traj.geometry.all().order_by('start_md')
+            mech_data = []
+            for item in geometry_items:
+                mech_data.append({
+                    'type': item.item_type,
+                    'start_md': float(item.start_md),
+                    'end_md': float(item.end_md),
+                    'diameter': float(item.diameter),
+                    'color': item.color
+                })
+            context['mechanical_json'] = json.dumps(mech_data)
+        
         return context
 
 class SurveyImportView(LoginRequiredMixin, View):
