@@ -7,33 +7,114 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     
     <!-- Left Column: Well Info & Actions -->
+    <!-- Custom Print Styles -->
+    <style>
+        @media print {
+            @page { margin: 1cm; size: A4; }
+            body, .bg-slate-800, .bg-slate-900, main {
+                background-color: white !important;
+                color: black !important;
+            }
+            /* Hide UI Elements */
+            #sidebar, nav, header, .no-print {
+                display: none !important;
+            }
+            /* Layout Adjustments */
+            .grid-cols-1, .lg\:grid-cols-3, .lg\:col-span-2 {
+                display: block !important;
+                width: 100% !important;
+            }
+            /* Specific Components */
+            .border-slate-700 { border-color: #ddd !important; }
+            .text-slate-300, .text-slate-400, .text-slate-500 { color: #333 !important; }
+            .text-white { color: black !important; }
+            canvas { max-width: 100% !important; }
+            /* Graphic Handling */
+            .print-hidden-plot { display: none !important; }
+            .print-visible-image { 
+                display: block !important; 
+                max-width: 100%; 
+                height: auto; 
+                margin: 0 auto; 
+                page-break-after: always; /* Salto de página después del gráfico */
+            }
+            
+            /* Compact Layout for Header/Cards */
+            .print-compact-card {
+                padding: 10px !important;
+                margin-bottom: 10px !important;
+                border: 1px solid #ddd !important;
+            }
+            .print-compact-text {
+                margin-bottom: 2px !important;
+            }
+            .print-compact-value {
+                font-size: 14pt !important;
+            }
+            .gap-6 { gap: 10px !important; }
+            .space-y-6 { space-y: 10px !important; }
+            .mb-6 { margin-bottom: 10px !important; }
+
+            /* Table */
+            .print-table-container {
+                page-break-before: always; /* Asegurar inicio en nueva página */
+                margin-top: 20px;
+                display: block !important;
+                max-height: none !important; /* Permitir altura infinita */
+                overflow: visible !important; /* Quitar scroll */
+            }
+            .print-table-container div {
+                max-height: none !important;
+                overflow: visible !important;
+            }
+            table { font-size: 10pt; width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #ddd; padding: 4px; color: black !important; page-break-inside: avoid; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+            thead { display: table-header-group; }
+            tfoot { display: table-footer-group; }
+            
+            /* Footer */
+            .print-footer { display: block !important; position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 8pt; color: #666; }
+        }
+        .print-footer, .print-visible-image { display: none; }
+    </style>
+
     <div class="space-y-6">
+        <!-- Header Actions -->
+        <div class="flex justify-between items-center no-print">
+             <div><!-- Spacer --></div>
+             <button onclick="handlePrint()" id="printBtn" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors flex items-center shadow-md">
+                <i class="fa-solid fa-print mr-2"></i> Imprimir Reporte
+             </button>
+        </div>
+
         <!-- Well Info Card -->
-        <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-lg">
-            <h3 class="text-lg font-semibold text-white mb-4 border-b border-slate-700 pb-2">Información General</h3>
+        <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-lg print-compact-card">
+            <h3 class="text-lg font-semibold text-white mb-4 border-b border-slate-700 pb-2 print-compact-text">Información General</h3>
             <div class="space-y-3">
                 <div>
-                    <p class="text-xs text-slate-400 uppercase tracking-wide">Ubicación / Campo</p>
+                    <p class="text-xs text-slate-400 uppercase tracking-wide print-compact-text">Ubicación / Campo</p>
                     <p class="text-white font-medium">{{ well.location|default:"No definido" }}</p>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <p class="text-xs text-slate-400 uppercase tracking-wide">Latitud</p>
+                        <p class="text-xs text-slate-400 uppercase tracking-wide print-compact-text">Latitud</p>
                         <p class="text-slate-300 font-mono text-sm">{{ well.latitude|default:"--" }}</p>
                     </div>
                     <div>
-                        <p class="text-xs text-slate-400 uppercase tracking-wide">Longitud</p>
+                        <p class="text-xs text-slate-400 uppercase tracking-wide print-compact-text">Longitud</p>
                         <p class="text-slate-300 font-mono text-sm">{{ well.longitude|default:"--" }}</p>
                     </div>
                 </div>
                 <div>
-                    <p class="text-xs text-slate-400 uppercase tracking-wide">Elevación (RKB/GL)</p>
+                    <p class="text-xs text-slate-400 uppercase tracking-wide print-compact-text">Elevación (RKB/GL)</p>
                     <p class="text-slate-300">{{ well.elevation }} m</p>
                 </div>
                 <div>
-                    <p class="text-xs text-slate-400 uppercase tracking-wide">Estado</p>
+                    <p class="text-xs text-slate-400 uppercase tracking-wide print-compact-text">Estado</p>
                     {% if well.is_active %}
                         <span class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-green-500/10 text-green-400">
+
                             <span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-2"></span> Activo
                         </span>
                     {% else %}
@@ -46,7 +127,7 @@
         </div>
 
         <!-- Import Action Card -->
-        <div class="bg-indigo-900/20 rounded-xl p-6 border border-indigo-500/30 shadow-lg">
+        <div class="bg-indigo-900/20 rounded-xl p-6 border border-indigo-500/30 shadow-lg no-print">
             <h3 class="text-lg font-semibold text-white mb-2">Importar Datos</h3>
             <p class="text-sm text-slate-400 mb-6">Carga nuevos surveys o actualizaciones usando la plantilla oficial.</p>
 
@@ -84,14 +165,14 @@
         
         <!-- Active Trajectory Summary -->
         <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-lg">
-            <div class="p-6 border-b border-slate-700 flex justify-between items-center">
-                <h3 class="text-lg font-semibold text-white">Trayectoria Activa</h3>
+            <div class="p-6 border-b border-slate-700 flex justify-between items-center print-compact-card">
+                <h3 class="text-lg font-semibold text-white print-compact-text">Trayectoria Activa</h3>
                 {% if active_trajectory %}
                     <div class="flex items-center gap-3">
-                        <span class="px-3 py-1 bg-indigo-500/10 text-indigo-400 rounded-full text-xs border border-indigo-500/20">
+                        <span class="px-3 py-1 bg-indigo-500/10 text-indigo-400 rounded-full text-xs border border-indigo-500/20 print-compact-text">
                             {{ active_trajectory.name }}
                         </span>
-                        <form action="{% url 'surveys:trajectory_delete' active_trajectory.pk %}" method="post" onsubmit="return confirm('¿Estás seguro de eliminar esta trayectoria y todos sus datos?');">
+                        <form action="{% url 'surveys:trajectory_delete' active_trajectory.pk %}" method="post" onsubmit="return confirm('¿Estás seguro de eliminar esta trayectoria y todos sus datos?');" class="no-print">
                             {% csrf_token %}
                             <button type="submit" class="text-slate-400 hover:text-red-400 transition-colors" title="Eliminar Trayectoria">
                                 <i class="fa-solid fa-trash-can"></i>
@@ -103,28 +184,28 @@
                 {% endif %}
             </div>
             
-            <div class="p-6">
+            <div class="p-6 print-compact-card">
                 {% if active_trajectory %}
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                        <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-700/50 text-center">
-                            <p class="text-xs text-slate-500 mb-1">Profundidad (MD)</p>
-                            <p class="text-xl font-bold text-white">{{ active_trajectory.stations.last.md|floatformat:1 }} <span class="text-xs font-normal text-slate-600">m</span></p>
+                        <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-700/50 text-center print-compact-card">
+                            <p class="text-xs text-slate-500 mb-1 print-compact-text">Profundidad (MD)</p>
+                            <p class="text-xl font-bold text-white print-compact-value">{{ active_trajectory.stations.last.md|floatformat:1 }} <span class="text-xs font-normal text-slate-600">m</span></p>
                         </div>
-                        <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-700/50 text-center">
-                            <p class="text-xs text-slate-500 mb-1">Inclinación Max</p>
-                            <p class="text-xl font-bold text-white">--°</p>
+                        <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-700/50 text-center print-compact-card">
+                            <p class="text-xs text-slate-500 mb-1 print-compact-text">Inclinación Max</p>
+                            <p class="text-xl font-bold text-white print-compact-value">{{ kpi_max_inc|floatformat:2 }}°</p>
                         </div>
-                        <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-700/50 text-center">
-                            <p class="text-xs text-slate-500 mb-1">TVD Final</p>
-                            <p class="text-xl font-bold text-white">{{ active_trajectory.stations.last.tvd|floatformat:1 }} <span class="text-xs font-normal text-slate-600">m</span></p>
+                        <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-700/50 text-center print-compact-card">
+                            <p class="text-xs text-slate-500 mb-1 print-compact-text">TVD Final</p>
+                            <p class="text-xl font-bold text-white print-compact-value">{{ active_trajectory.stations.last.tvd|floatformat:1 }} <span class="text-xs font-normal text-slate-600">m</span></p>
                         </div>
-                        <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-700/50 text-center">
-                            <p class="text-xs text-slate-500 mb-1">Desplazamiento</p>
-                            <p class="text-xl font-bold text-white">-- <span class="text-xs font-normal text-slate-600">m</span></p>
+                        <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-700/50 text-center print-compact-card">
+                            <p class="text-xs text-slate-500 mb-1 print-compact-text">Desplazamiento</p>
+                            <p class="text-xl font-bold text-white print-compact-value">{{ kpi_closure|floatformat:1 }} <span class="text-xs font-normal text-slate-600">m</span></p>
                         </div>
                     </div>
                     
-                    <div class="h-[600px] bg-slate-900 rounded-lg border border-slate-700/50 relative overflow-hidden group">
+                    <div id="plot-container" class="h-[600px] bg-slate-900 rounded-lg border border-slate-700/50 relative overflow-hidden group mb-6 print-hidden-plot">
                          {% if plot_div %}
                             {{ plot_div|safe }}
                          {% else %}
@@ -134,6 +215,43 @@
                              </div>
                          {% endif %}
                     </div>
+                    <!-- Image Snapshot for Print -->
+                    <img id="plot-snapshot" class="print-visible-image mb-6" src="" alt="Gráfico 3D (Captura)">
+
+                    <!-- Survey Data Table -->
+                    <div class="mt-6 border-t border-slate-700 pt-6 print-table-container">
+                        <h4 class="text-white font-semibold mb-4 flex items-center print-compact-text">
+                           <i class="fa-solid fa-table-list mr-2 text-indigo-500"></i> Reporte de Survey
+                        </h4>
+                        <div class="overflow-x-auto max-h-96 rounded-lg border border-slate-700 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+                            <table class="w-full text-sm text-left text-slate-400">
+                                <thead class="text-xs text-slate-300 uppercase bg-slate-900 sticky top-0 z-10 shadow-sm">
+                                    <tr>
+                                        <th class="px-4 py-3">MD (m)</th>
+                                        <th class="px-4 py-3">Inc (°)</th>
+                                        <th class="px-4 py-3">Azi (°)</th>
+                                        <th class="px-4 py-3">TVD (m)</th>
+                                        <th class="px-4 py-3">Norte (m)</th>
+                                        <th class="px-4 py-3">Este (m)</th>
+                                        <th class="px-4 py-3">DLS</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-700 bg-slate-800">
+                                    {% for station in stations_list %}
+                                    <tr class="hover:bg-slate-700/50 transition-colors">
+                                        <td class="px-4 py-2 font-medium text-white">{{ station.md|floatformat:1 }}</td>
+                                        <td class="px-4 py-2">{{ station.inclination|floatformat:2 }}</td>
+                                        <td class="px-4 py-2">{{ station.azimuth|floatformat:2 }}</td>
+                                        <td class="px-4 py-2 text-indigo-300">{{ station.tvd|floatformat:1 }}</td>
+                                        <td class="px-4 py-2">{{ station.north|floatformat:1 }}</td>
+                                        <td class="px-4 py-2">{{ station.east|floatformat:1 }}</td>
+                                        <td class="px-4 py-2">{{ station.dls|floatformat:2 }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                   </div>
                 {% else %}
                     <div class="text-center py-12 text-slate-500">
                         <i class="fa-regular fa-folder-open text-4xl mb-3 opacity-50"></i>
@@ -145,7 +263,7 @@
         </div>
 
         <!-- Import History -->
-        <div class="bg-slate-800 rounded-xl border border-slate-700 shadow-lg">
+        <div class="bg-slate-800 rounded-xl border border-slate-700 shadow-lg no-print">
             <div class="p-6 border-b border-slate-700">
                 <h3 class="text-lg font-semibold text-white">Historial de Importaciones</h3>
             </div>
@@ -191,4 +309,51 @@
 
     </div>
 </div>
+
+<div class="print-footer">
+    <p>Reporte generado por DynaDrill - {{ active_trajectory.generated_at|date:"d/m/Y" }}</p>
+</div>
+
+<script>
+    async function handlePrint() {
+        const btn = document.getElementById('printBtn');
+        const originalText = btn.innerHTML;
+        
+        // Find Plotly graph
+        const plotContainer = document.getElementById('plot-container');
+        const plotlyDiv = plotContainer ? plotContainer.querySelector('.plotly-graph-div') : null;
+        
+        if (plotlyDiv) {
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Generando imagen...';
+            try {
+                // Snapshot 3D scene (Larger Image)
+                const dataUrl = await Plotly.toImage(plotlyDiv, {
+                    format: 'png',
+                    width: 1200,
+                    height: 1200
+                });
+                
+                // Set to img
+                const img = document.getElementById('plot-snapshot');
+                img.src = dataUrl;
+                
+                // Wait a moment for image to load
+                await new Promise(r => setTimeout(r, 100));
+                
+                // Print
+                window.print();
+                
+            } catch (e) {
+                console.error("Error generating plot snapshot", e);
+                alert("Hubo un error generando la imagen del gráfico. Se imprimirá la versión estándar.");
+                window.print();
+            } finally {
+                btn.innerHTML = originalText;
+            }
+        } else {
+            // Fallback if no plot
+            window.print();
+        }
+    }
+</script>
 {% endblock %}

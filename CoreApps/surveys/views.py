@@ -26,6 +26,9 @@ class WellListView(LoginRequiredMixin, ListView):
     template_name = 'surveys/well_list.html'
     context_object_name = 'wells'
 
+from django.db.models import Max
+import math
+
 class WellDetailView(LoginRequiredMixin, DetailView):
     model = Well
     template_name = 'surveys/well_detail.html'
@@ -40,8 +43,24 @@ class WellDetailView(LoginRequiredMixin, DetailView):
         active_traj = self.object.trajectories.filter(is_active=True).first()
         context['active_trajectory'] = active_traj
         
-        # Generar Gráfico 3D si hay trayectoria
         if active_traj:
+            # --- KPIs y Tabla de Datos ---
+            stations = active_traj.stations.all().order_by('md')
+            context['stations_list'] = stations
+            
+            # KPI: Inclinación Máxima
+            max_inc_data = stations.aggregate(Max('inclination'))
+            context['kpi_max_inc'] = max_inc_data.get('inclination__max') or 0
+            
+            # KPI: Desplazamiento (Closure Distance)
+            last_station = stations.last()
+            if last_station and last_station.north is not None and last_station.east is not None:
+                closure = math.sqrt(last_station.north**2 + last_station.east**2)
+                context['kpi_closure'] = closure
+            else:
+                context['kpi_closure'] = 0
+
+            # Generar Gráfico 3D
             context['plot_div'] = generate_3d_plot(active_traj)
             
         return context
